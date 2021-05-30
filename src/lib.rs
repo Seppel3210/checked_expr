@@ -11,16 +11,16 @@ use proc_macro2::{TokenTree, Ident, Span, TokenStream};
 /// # Examples
 /// ```
 /// use checked_expr::checked_expr;
-/// assert_eq!(checked_expr(254_u8 + 1), Some(255));
-/// assert_eq!(checked_expr(255_u8 + 1), None);
+/// assert_eq!(checked_expr!(254_u8 + 1), Some(255));
+/// assert_eq!(checked_expr!(255_u8 + 1), None);
 ///
 /// // this even works on negation
-/// assert_eq!(checked_expr(-(-127 as i8)), Some(127));
-/// assert_eq!(checked_expr(-(-128 as i8)), None);
+/// assert_eq!(checked_expr!(-(-127 as i8)), Some(127));
+/// assert_eq!(checked_expr!(-(-128 as i8)), None);
 ///
 /// // you can also arbitrarily nest expressions although you sometimes need to be very
 /// // explicit with the types on literals on the left hand side of operations
-/// assert_eq!(checked_expr((10_i32 - 8) * (40_i32 + 13) / 8), Some(12));
+/// assert_eq!(checked_expr!((10_i32 - 8) * (40_i32 + 13) / 8), Some(13));
 /// ```
 #[proc_macro]
 pub fn checked_expr(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
