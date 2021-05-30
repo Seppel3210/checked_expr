@@ -1,0 +1,17 @@
+[package]
+name = "checked_expr"
+version = "0.1.0"
+authors = ["Sebastian Widua <seppel3210@gmail.com>"]
+description = "a procedural macro for making writing checked_* chains more ergonomic"
+license = "MIT OR Apache-2.0"
+keywords = ["proc_macro", "checked", "expressions"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1"
+proc-macro2 = "1.0"
+syn = "1.0"
+
