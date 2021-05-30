@@ -1,12 +1,27 @@
+//! Crate providing a procedural macro to make normal operations into overflow checked operations easily
 extern crate proc_macro;
 
 use syn::{parse_macro_input, Expr, ExprBinary, ExprUnary, BinOp, UnOp};
 use quote::{quote, ToTokens};
 use proc_macro2::{TokenTree, Ident, Span, TokenStream};
 
-/// Example of [function-like procedural macro][1].
+/// Procedural macro to convert normal integer operations into overflow-checked operations.
+/// The expression will evaluate to `Some(result)` if all operations succed or to `None` if any of
+/// the operations fails.
+/// # Examples
+/// ```
+/// use checked_expr::checked_expr;
+/// assert_eq!(checked_expr(254_u8 + 1), Some(255));
+/// assert_eq!(checked_expr(255_u8 + 1), None);
 ///
-/// [1]: https://doc.rust-lang.org/reference/procedural-macros.html#function-like-procedural-macros
+/// // this even works on negation
+/// assert_eq!(checked_expr(-(-127 as i8)), Some(127));
+/// assert_eq!(checked_expr(-(-128 as i8)), None);
+///
+/// // you can also arbitrarily nest expressions although you sometimes need to be very
+/// // explicit with the types on literals on the left hand side of operations
+/// assert_eq!(checked_expr((10_i32 - 8) * (40_i32 + 13) / 8), Some(12));
+/// ```
 #[proc_macro]
 pub fn checked_expr(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as Expr);
