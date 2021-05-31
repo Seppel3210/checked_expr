@@ -8,19 +8,22 @@ use syn::{parse_macro_input, BinOp, Expr, ExprBinary, ExprMethodCall, ExprUnary,
 /// Procedural macro to convert normal integer operations into overflow-checked operations.
 /// The expression will evaluate to `Some(result)` if all operations succed or to `None` if any of
 /// the operations fails.
+///
+/// This Macro supports checked functions for these operators:
+/// `-` (`neg`),`+` (`add`), `-` (`sub`), `*` (`mul`), `/` (`div`), `%` (`rem`), `<<` (`shl`), `>>` (`shr`)
+///
 /// # Examples
 /// ```
 /// use checked_expr::checked_expr;
 /// assert_eq!(checked_expr!(254_u8 + 1), Some(255));
 /// assert_eq!(checked_expr!(255_u8 + 1), None);
 ///
-/// // this even works on negation
-/// assert_eq!(checked_expr!(-(-127 as i8)), Some(127));
-/// assert_eq!(checked_expr!(-(-128 as i8)), None);
+/// assert_eq!(checked_expr!(-(-127_i8)), Some(127));
+/// assert_eq!(checked_expr!(-(-128_i8)), None);
 ///
 /// // you can also arbitrarily nest expressions although you sometimes need to be very
 /// // explicit with the types on literals on the left hand side of operations
-/// assert_eq!(checked_expr!((10_i32 - 8) * (40_i32 + 13) / 8), Some(13));
+/// assert_eq!(checked_expr!((10_i32 - 8) * (3_i32 + 6) % 8), Some(2));
 /// ```
 #[proc_macro]
 pub fn checked_expr(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
