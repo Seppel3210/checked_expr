@@ -11,6 +11,8 @@ use syn::{parse_macro_input, BinOp, Expr, ExprBinary, ExprMethodCall, ExprUnary,
 ///
 /// This Macro supports checked functions for these operators:
 /// `-` (`neg`),`+` (`add`), `-` (`sub`), `*` (`mul`), `/` (`div`), `%` (`rem`), `<<` (`shl`), `>>` (`shr`)
+/// And it also substitutes these methods with their checked variants:
+/// `abs`, `pow`
 ///
 /// # Examples
 /// ```
@@ -20,6 +22,10 @@ use syn::{parse_macro_input, BinOp, Expr, ExprBinary, ExprMethodCall, ExprUnary,
 ///
 /// assert_eq!(checked_expr!(-(-127_i8)), Some(127));
 /// assert_eq!(checked_expr!(-(-128_i8)), None);
+///
+/// // also works with `pow` and `abs`
+/// assert_eq!(checked_expr!((-128_i8).abs()), None);
+/// assert_eq!(checked_expr!(10_u16.pow(100)), None);
 ///
 /// // you can also arbitrarily nest expressions although you sometimes need to be very
 /// // explicit with the types on literals on the left hand side of operations
@@ -45,6 +51,7 @@ fn expr(expr: &Expr) -> TokenStream {
         Expr::Unary(expr) => unary_expr(expr),
         Expr::Binary(expr) => binary_expr(expr),
         Expr::Paren(expr) => crate::expr(&expr.expr),
+        Expr::MethodCall(expr) => method_call(expr),
         _ => quote! {
             (#expr)
         },
@@ -91,8 +98,21 @@ fn unary_expr(expr: &ExprUnary) -> TokenStream {
         #inner.#fn_ident()?
     }
 }
-/*
+
 fn method_call(expr: &ExprMethodCall) -> TokenStream {
-    let
+    let method_name = match expr.method.to_string().as_str() {
+        "abs" => "checked_abs",
+        "pow" => "checked_pow",
+        _ => {
+            return quote! {
+                (#expr)
+            }
+        }
+    };
+    let method_ident = TokenTree::Ident(Ident::new(method_name, Span::call_site()));
+    let left = crate::expr(&expr.receiver);
+    let args = &expr.args;
+    quote! {
+        #left.#method_ident(#args)?
+    }
 }
-*/

@@ -1,6 +1,6 @@
 [package]
 name = "checked_expr"
-version = "0.2.3"
+version = "0.3.0"
 authors = ["Sebastian Widua <seppel3210@gmail.com>"]
 description = "a procedural macro for making writing checked_* chains more ergonomic"
 repository = "https://github.com/Seppel3210/checked_expr"
@@ -13,7 +13,7 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-quote = "1"
+quote = "1.0"
 proc-macro2 = "1.0"
-syn = "1.0"
+syn = { version = "1.0", features = ["full"] }
 
