@@ -2,7 +2,7 @@
 extern crate proc_macro;
 
 use proc_macro2::{Ident, Span, TokenStream, TokenTree};
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{parse_macro_input, BinOp, Expr, ExprBinary, ExprMethodCall, ExprUnary, UnOp};
 
 /// Procedural macro to convert normal integer operations into overflow-checked operations.
@@ -24,9 +24,17 @@ use syn::{parse_macro_input, BinOp, Expr, ExprBinary, ExprMethodCall, ExprUnary,
 /// ```
 #[proc_macro]
 pub fn checked_expr(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    // the idea is to convert something like this
+    // 1 + 2 * 3
+    // into
+    // (|| Some(1.checked_add(2.checked_mul(3)?)?) )()
     let input = parse_macro_input!(input as Expr);
 
-    expr(&input).into()
+    let expr = expr(&input);
+    let tokens = quote! {
+        (|| Some(#expr) )()
+    };
+    tokens.into()
 }
 
 fn expr(expr: &Expr) -> TokenStream {
@@ -35,7 +43,7 @@ fn expr(expr: &Expr) -> TokenStream {
         Expr::Binary(expr) => binary_expr(expr),
         Expr::Paren(expr) => crate::expr(&expr.expr),
         _ => quote! {
-            Some(#expr)
+            (#expr)
         },
     }
 }
@@ -51,7 +59,7 @@ fn binary_expr(expr: &ExprBinary) -> TokenStream {
         BinOp::Shr(_) => "checked_shr",
         _ => {
             return quote! {
-                Some(#expr)
+                (#expr)
             }
         }
     };
@@ -60,7 +68,7 @@ fn binary_expr(expr: &ExprBinary) -> TokenStream {
     let left = crate::expr(&expr.left);
     let right = crate::expr(&expr.right);
     quote! {
-        #left.and_then(|x| x.#fn_ident(#right?))
+        #left.#fn_ident(#right)?
     }
 }
 
@@ -69,7 +77,7 @@ fn unary_expr(expr: &ExprUnary) -> TokenStream {
         UnOp::Neg(_) => "checked_neg",
         _ => {
             return quote! {
-                Some(#expr)
+                (#expr)
             }
         }
     };
@@ -77,6 +85,11 @@ fn unary_expr(expr: &ExprUnary) -> TokenStream {
 
     let inner = crate::expr(&expr.expr);
     quote! {
-        #inner.and_then(|x| x.#fn_ident())
+        #inner.#fn_ident()?
     }
 }
+/*
+fn method_call(expr: &ExprMethodCall) -> TokenStream {
+    let
+}
+*/
