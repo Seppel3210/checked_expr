@@ -7,6 +7,7 @@ repository = "https://github.com/Seppel3210/checked_expr"
 documentation = "https://docs.rs/checked_expr"
 license = "MIT OR Apache-2.0"
 keywords = ["checked", "arithmetic", "integer", "overflow", "expressions"]
+categories = ["development-tools"]
 edition = "2018"
 
 [lib]

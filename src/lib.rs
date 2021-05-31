@@ -1,3 +1,6 @@
+#![warn(clippy::all)]
+#![warn(clippy::cargo)]
+#![warn(clippy::pedantic)]
 //! Crate providing a procedural macro to make normal operations into overflow checked operations easily
 extern crate proc_macro;
 
