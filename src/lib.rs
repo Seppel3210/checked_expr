@@ -1,9 +1,9 @@
 //! Crate providing a procedural macro to make normal operations into overflow checked operations easily
 extern crate proc_macro;
 
-use syn::{parse_macro_input, Expr, ExprBinary, ExprUnary, BinOp, UnOp};
+use proc_macro2::{Ident, Span, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
-use proc_macro2::{TokenTree, Ident, Span, TokenStream};
+use syn::{parse_macro_input, BinOp, Expr, ExprBinary, ExprMethodCall, ExprUnary, UnOp};
 
 /// Procedural macro to convert normal integer operations into overflow-checked operations.
 /// The expression will evaluate to `Some(result)` if all operations succed or to `None` if any of
@@ -31,15 +31,12 @@ pub fn checked_expr(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 fn expr(expr: &Expr) -> TokenStream {
     match expr {
-        Expr::Unary(expr) => { unary_expr(expr) }
-        Expr::Binary(expr) => { binary_expr(expr) }
+        Expr::Unary(expr) => unary_expr(expr),
+        Expr::Binary(expr) => binary_expr(expr),
         Expr::Paren(expr) => crate::expr(&expr.expr),
-        _ => {
-            let tokens = quote! {
-                Some(#expr)
-            };
-            tokens.into()
-        }
+        _ => quote! {
+            Some(#expr)
+        },
     }
 }
 
@@ -52,7 +49,11 @@ fn binary_expr(expr: &ExprBinary) -> TokenStream {
         BinOp::Rem(_) => "checked_rem",
         BinOp::Shl(_) => "checked_shl",
         BinOp::Shr(_) => "checked_shr",
-        _ => return expr.to_token_stream()
+        _ => {
+            return quote! {
+                Some(#expr)
+            }
+        }
     };
     let fn_ident = TokenTree::Ident(Ident::new(function_name, Span::call_site()));
 
@@ -66,7 +67,11 @@ fn binary_expr(expr: &ExprBinary) -> TokenStream {
 fn unary_expr(expr: &ExprUnary) -> TokenStream {
     let function_name = match expr.op {
         UnOp::Neg(_) => "checked_neg",
-        _ => return expr.to_token_stream()
+        _ => {
+            return quote! {
+                Some(#expr)
+            }
+        }
     };
     let fn_ident = TokenTree::Ident(Ident::new(function_name, Span::call_site()));
 

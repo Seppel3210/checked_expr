@@ -1,6 +1,6 @@
 [package]
 name = "checked_expr"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Sebastian Widua <seppel3210@gmail.com>"]
 description = "a procedural macro for making writing checked_* chains more ergonomic"
 repository = "https://github.com/Seppel3210/checked_expr"
